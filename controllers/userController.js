@@ -26,14 +26,33 @@ exports.createUser=async(req,res)=>{
     }
 }
 
-exports.updateUser=(req,res)=>{
-    let data=req.doby
-    const{nombre,apellido,email,telefono}=data
-    console.log(nombre,apellido,email,telefono)
-    console.log(req.params.id)
-    console.log(nombre,apellido,email,telefono)
-}
+exports.updateUser = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const data = req.body;
+        const updatedUser = await userService.updateUser(id, data);
 
-exports.deleteUser=(req,res)=>{
-    console.log(req.params.id)
-}
+        if (!updatedUser) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const deletedUser = await userService.deleteUser(id);
+
+        if (!deletedUser) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+
+        res.status(200).json({ message: "Usuario eliminado correctamente" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

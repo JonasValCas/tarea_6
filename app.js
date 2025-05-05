@@ -1,31 +1,43 @@
-const express=require('express')
-const app=express()
-const userRouter=require('./routers/userRouters')
-const morgan = require('morgan')
-const userLogin=require('./middlewares/userLogin')
-const path=require('path')
-const connection=require('./database/connection')
+const express = require('express');
+const app = express();
+const path = require('path');
+const morgan = require('morgan');
+const userLogin = require('./middlewares/userLogin');
+const connection = require('./database/connection');
 
+// Routers
+const userRouter = require('./routers/userRouters');
+const movieRouter = require('./routers/movieRouter');
+const genreRouter = require('./routers/genreRouter');
+const ratingRouter = require('./routers/ratingRouter');
 
-app.use(express.json())
-app.use(morgan('dev'))
-app.use(userLogin)
-app.set('views', path.join(__dirname,'views'))
-app.set('view engine', 'ejs')
+// Middlewares
+app.use(express.json());
+app.use(morgan('dev'));
+app.use(userLogin);
 
-app.get('/',(req, res)=>{
+// Vistas con EJS
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
-    const data={
-        "title":"Titulo de la página",
-        "message":"Que bonita pagina",
-        "showMessage":true,
-        "items":[1,2,3,4,5,6]
-    }
-    res.render('index',data)
-})
+// Ruta principal
+app.get('/', (req, res) => {
+    const data = {
+        title: "Titulo de la página",
+        message: "Que bonita pagina",
+        showMessage: true,
+        items: [1, 2, 3, 4, 5, 6]
+    };
+    res.render('index', data);
+});
 
-app.use('/users', userRouter)
+// Rutas de API
+app.use('/users', userRouter);
+app.use('/movies', movieRouter);
+app.use('/genres', genreRouter);
+app.use('/ratings', ratingRouter);
 
-app.listen(3000,()=>{
-    console.log('Aplicacion con express ejecutandose en el puerto 3000')
-})
+// Servidor
+app.listen(3000, () => {
+    console.log('Aplicación con Express ejecutándose en el puerto 3000');
+});
