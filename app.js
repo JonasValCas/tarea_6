@@ -4,7 +4,7 @@ const path = require('path');
 const morgan = require('morgan');
 const userLogin = require('./middlewares/userLogin');
 const connection = require('./database/connection');
-
+const socket = require('socket.io');
 // Routers
 const userRouter = require('./routers/userRouters');
 const movieRouter = require('./routers/movieRouter');
@@ -17,6 +17,7 @@ app.use(morgan('dev'));
 app.use(userLogin);
 
 // Vistas con EJS
+app.use(express.static(__dirname+ '/public'));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -37,7 +38,12 @@ app.use('/movies', movieRouter);
 app.use('/genres', genreRouter);
 app.use('/ratings', ratingRouter);
 
+const server = require('http').createServer(app);
+const io = socket(server);
+require('./socket')(io);
+
+
 // Servidor
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log('Aplicación con Express ejecutándose en el puerto 3000');
 });
