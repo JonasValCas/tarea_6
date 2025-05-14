@@ -10,6 +10,8 @@ const userRouter = require('./routers/userRouters');
 const movieRouter = require('./routers/movieRouter');
 const genreRouter = require('./routers/genreRouter');
 const ratingRouter = require('./routers/ratingRouter');
+const authRouter = require('./routers/authRouters');
+const dashboardRouter = require('./routers/dashboardRouters');
 
 // Middlewares
 app.use(express.json());
@@ -33,6 +35,8 @@ app.get('/', (req, res) => {
 });
 
 // Rutas de API
+app.use('/auth', authRouter);
+app.use('/dashboard', dashboardRouter);
 app.use('/users', userRouter);
 app.use('/movies', movieRouter);
 app.use('/genres', genreRouter);

@@ -1,0 +1,154 @@
+/* Estilos para el chat flotante */
+.chat-flotante-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.chat-flotante-btn:hover {
+    background-color: #0069d9;
+    transform: scale(1.1);
+}
+
+.chat-flotante-btn i {
+    font-size: 24px;
+}
+
+.chat-flotante-container {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    height: 450px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-flotante-header {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-flotante-header h5 {
+    margin: 0;
+}
+
+.chat-flotante-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.chat-flotante-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-flotante-messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+.chat-flotante-message {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.chat-flotante-message-user {
+    background-color: #e9ecef;
+    align-self: flex-start;
+}
+
+.chat-flotante-message-me {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+}
+
+.chat-flotante-writing {
+    font-size: 12px;
+    color: #6c757d;
+    height: 20px;
+    margin-bottom: 5px;
+}
+
+.chat-flotante-input {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.chat-flotante-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 20px;
+    margin-right: 10px;
+}
+
+.chat-flotante-input button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.chat-flotante-input button:hover {
+    background-color: #0069d9;
+}
+
+.chat-flotante-show {
+    display: flex;
+}
+
+/* Animación para mostrar/ocultar el chat */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+}
+
+.chat-flotante-fade-in {
+    animation: fadeIn 0.3s forwards;
+}
+
+.chat-flotante-fade-out {
+    animation: fadeOut 0.3s forwards;
+}

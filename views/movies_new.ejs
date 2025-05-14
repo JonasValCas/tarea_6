@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Películas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Mi Aplicación</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Panel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard/movies">Películas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/genres">Géneros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/ratings">Calificaciones</a>
+                    </li>
+                </ul>
+                <div class="user-info">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <span id="navUserName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/auth/profile">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1>Administrar Películas</h1>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMovieModal">
+                    <i class="bi bi-plus"></i> Nueva Película
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-success" id="successAlert" style="display: none;"></div>
+        <div class="alert alert-danger" id="errorAlert" style="display: none;"></div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Año</th>
+                                <th>Género</th>
+                                <th>Descripción</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="moviesTableBody">
+                            <% if(locals.movies && movies.length > 0) { %>
+                                <% movies.forEach(function(movie) { %>
+                                    <tr>
+                                        <td><%= movie.title %></td>
+                                        <td><%= movie.releaseYear %></td>
+                                        <td><%= movie.genre ? movie.genre.name : 'Sin género' %></td>
+                                        <td><%= movie.description || 'Sin descripción' %></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info edit-btn" data-id="<%= movie._id %>">Editar</button>
+                                            <button class="btn btn-sm btn-danger delete-btn" data-id="<%= movie._id %>">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="5" class="text-center">No hay películas disponibles</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadingMessage" class="text-center py-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando películas...</p>
+                </div>
+                <div id="noMoviesMessage" class="text-center py-3" style="display: none;">
+                    <p>No hay películas disponibles. u00a1Agrega una nueva!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar película -->
+    <div class="modal fade" id="addMovieModal" tabindex="-1" aria-labelledby="addMovieModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMovieModalLabel">Agregar Nueva Película</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMovieForm">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="releaseYear" class="form-label">Año</label>
+                            <input type="number" class="form-control" id="releaseYear" required min="1900" max="2099">
+                        </div>
+                        <div class="mb-3">
+                            <label for="genre" class="form-label">Género</label>
+                            <select class="form-select" id="genre" required>
+                                <option value="" selected disabled>Seleccionar género</option>
+                                <% if(locals.genres && genres.length > 0) { %>
+                                    <% genres.forEach(function(genre) { %>
+                                        <option value="<%= genre._id %>"><%= genre.name %></option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveMovieBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar película -->
+    <div class="modal fade" id="editMovieModal" tabindex="-1" aria-labelledby="editMovieModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMovieModalLabel">Editar Película</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMovieForm">
+                        <input type="hidden" id="editMovieId">
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="editTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editReleaseYear" class="form-label">Año</label>
+                            <input type="number" class="form-control" id="editReleaseYear" required min="1900" max="2099">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editGenre" class="form-label">Género</label>
+                            <select class="form-select" id="editGenre" required>
+                                <option value="" selected disabled>Seleccionar género</option>
+                                <% if(locals.genres && genres.length > 0) { %>
+                                    <% genres.forEach(function(genre) { %>
+                                        <option value="<%= genre._id %>"><%= genre.name %></option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateMovieBtn">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let movies = [];
+        let genres = [];
+        
+        // Verificar autenticaciu00f3n
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!token || !user) {
+                // Redirigir al login si no estu00e1 autenticado
+                window.location.href = '/auth/login';
+                return null;
+            }
+            
+            // Mostrar nombre de usuario
+            document.getElementById('navUserName').textContent = user.nombre;
+            return token;
+        }
+        
+        // Cargar pelu00edculas
+        async function loadMovies() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('moviesTableBody').innerHTML = '';
+            
+            try {
+                const response = await fetch('/movies', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    movies = await response.json();
+                    displayMovies(movies);
+                } else {
+                    showError('Error al cargar las películas');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexiu00f3n');
+            } finally {
+                document.getElementById('loadingMessage').style.display = 'none';
+            }
+        }
+        
+        // Cargar gu00e9neros
+        async function loadGenres() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/genres', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    genres = await response.json();
+                    populateGenreDropdowns(genres);
+                } else {
+                    showError('Error al cargar los gu00e9neros');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexiu00f3n');
+            }
+        }
+        
+        // Mostrar películas en la tabla
+        function displayMovies(movies) {
+            const tableBody = document.getElementById('moviesTableBody');
+            tableBody.innerHTML = '';
+            
+            if (movies.length === 0) {
+                document.getElementById('noMoviesMessage').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('noMoviesMessage').style.display = 'none';
+            
+            movies.forEach(movie => {
+                // Obtener el nombre del género de manera correcta
+                let genreName = 'Sin género';
+                
+                if (movie.genre) {
+                    if (typeof movie.genre === 'object' && movie.genre.name) {
+                        // Si el género ya está poblado como objeto
+                        genreName = movie.genre.name;
+                    } else if (typeof movie.genre === 'string') {
+                        // Si el género es un ID, buscarlo en la lista de géneros
+                        const genre = genres.find(g => g._id === movie.genre);
+                        if (genre) {
+                            genreName = genre.name;
+                        }
+                    }
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${movie.title}</td>
+                    <td>${movie.releaseYear}</td>
+                    <td>${genreName}</td>
+                    <td>${movie.description || 'Sin descripción'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-btn" data-id="${movie._id}">
+                            Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${movie._id}">
+                            Eliminar
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Agregar event listeners a los botones
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editMovie(btn.getAttribute('data-id')));
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteMovie(btn.getAttribute('data-id')));
+            });
+        }
+        
+        // Poblar los dropdowns de géneros
+        function populateGenreDropdowns(genres) {
+            const addGenreSelect = document.getElementById('genre');
+            const editGenreSelect = document.getElementById('editGenre');
+            
+            // Limpiar opciones existentes excepto la primera
+            while (addGenreSelect.options.length > 1) {
+                addGenreSelect.remove(1);
+            }
+            
+            while (editGenreSelect.options.length > 1) {
+                editGenreSelect.remove(1);
+            }
+            
+            // Agregar opciones de géneros
+            genres.forEach(genre => {
+                const addOption = document.createElement('option');
+                addOption.value = genre._id;
+                addOption.textContent = genre.name;
+                addGenreSelect.appendChild(addOption);
+                
+                const editOption = document.createElement('option');
+                editOption.value = genre._id;
+                editOption.textContent = genre.name;
+                editGenreSelect.appendChild(editOption);
+            });
+        }
+        
+        // Agregar película
+        async function addMovie() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const title = document.getElementById('title').value;
+            const releaseYear = document.getElementById('releaseYear').value;
+            const genre = document.getElementById('genre').value;
+            const description = document.getElementById('description').value;
+            
+            try {
+                const response = await fetch('/movies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        releaseYear: parseInt(releaseYear),
+                        genre: genre,
+                        description: description
+                    })
+                });
+                
+                if (response.ok) {
+                    const newMovie = await response.json();
+                    movies.push(newMovie);
+                    displayMovies(movies);
+                    
+                    // Cerrar modal y limpiar formulario
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addMovieModal'));
+                    modal.hide();
+                    document.getElementById('addMovieForm').reset();
+                    
+                    showSuccess('Película agregada correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al agregar la película');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexiu00f3n');
+            }
+        }
+        
+        // Editar película
+        function editMovie(id) {
+            const movie = movies.find(m => m._id === id);
+            if (!movie) return;
+            
+            document.getElementById('editMovieId').value = movie._id;
+            document.getElementById('editTitle').value = movie.title;
+            document.getElementById('editReleaseYear').value = movie.releaseYear;
+            
+            // Seleccionar el género correcto
+            if (movie.genre && movie.genre._id) {
+                document.getElementById('editGenre').value = movie.genre._id;
+            } else if (typeof movie.genre === 'string') {
+                document.getElementById('editGenre').value = movie.genre;
+            }
+            
+            document.getElementById('editDescription').value = movie.description || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editMovieModal'));
+            modal.show();
+        }
+        
+        // Actualizar película
+        async function updateMovie() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const id = document.getElementById('editMovieId').value;
+            const title = document.getElementById('editTitle').value;
+            const releaseYear = document.getElementById('editReleaseYear').value;
+            const genre = document.getElementById('editGenre').value;
+            const description = document.getElementById('editDescription').value;
+            
+            try {
+                const response = await fetch(`/movies/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        releaseYear: parseInt(releaseYear),
+                        genre: genre,
+                        description: description
+                    })
+                });
+                
+                if (response.ok) {
+                    const updatedMovie = await response.json();
+                    
+                    // Actualizar la película en el array
+                    const index = movies.findIndex(m => m._id === id);
+                    if (index !== -1) {
+                        movies[index] = updatedMovie;
+                    }
+                    
+                    displayMovies(movies);
+                    
+                    // Cerrar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editMovieModal'));
+                    modal.hide();
+                    
+                    showSuccess('Película actualizada correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al actualizar la película');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Eliminar película
+        async function deleteMovie(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta película?')) {
+                return;
+            }
+            
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`/movies/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    // Eliminar la película del array
+                    movies = movies.filter(m => m._id !== id);
+                    displayMovies(movies);
+                    
+                    showSuccess('Película eliminada correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al eliminar la película');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Mostrar mensaje de éxito
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Mostrar mensaje de error
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación
+            const token = checkAuth();
+            if (!token) return;
+            
+            // Cargar datos
+            loadGenres();
+            loadMovies();
+            
+            // Evento de guardar película
+            document.getElementById('saveMovieBtn').addEventListener('click', addMovie);
+            
+            // Evento de actualizar película
+            document.getElementById('updateMovieBtn').addEventListener('click', updateMovie);
+            
+            // Evento de cerrar sesión
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        });
+    </script>
+    
+    <!-- Incluir el componente de chat flotante -->
+    <%- include('./partials/chat-flotante') %>
+</body>
+</html>

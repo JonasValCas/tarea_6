@@ -1,13 +1,16 @@
 const Message = require('../models/messageModel');
+
 class MessageService {
-    constructor(){}
-    async getAll(){
-        const messages = await Message.find({});
-        return messages;
-    }
-    async createMessage(msg){
-        const message = new Message(message);
-        return await message.save();
-    }
+  constructor() {}
+
+  async getAll() {
+    return await Message.find({});
+  }
+
+  async create(data) {
+    const message = new Message(data);
+    return await message.save();
+  }
 }
+
 module.exports = MessageService;

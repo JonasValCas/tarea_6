@@ -11,11 +11,12 @@ class MovieService {
 
     async create(data) {
         const movie = new Movie(data);
-        return await movie.save();
+        await movie.save();
+        return await Movie.findById(movie._id).populate('genre');
     }
 
     async update(id, data) {
-        return await Movie.findByIdAndUpdate(id, data, { new: true });
+        return await Movie.findByIdAndUpdate(id, data, { new: true }).populate('genre');
     }
 
     async delete(id) {

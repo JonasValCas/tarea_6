@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Mi Aplicación</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Panel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/movies">Películas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/genres">Géneros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/ratings">Calificaciones</a>
+                    </li>
+                </ul>
+                <div class="user-info">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <span id="navUserName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/auth/profile">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">Panel de Administración</h1>
+                <div class="alert alert-info" id="welcomeMessage">
+                    Bienvenido al panel de administración. Selecciona una opción del menú para gestionar los datos.
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Películas</h5>
+                        <p class="card-text">Gestiona el catálogo de películas</p>
+                        <a href="/dashboard/movies" class="btn btn-primary">Administrar Películas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Géneros</h5>
+                        <p class="card-text">Administra los géneros de películas</p>
+                        <a href="/dashboard/genres" class="btn btn-primary">Administrar Géneros</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Calificaciones</h5>
+                        <p class="card-text">Revisa las calificaciones de películas</p>
+                        <a href="/dashboard/ratings" class="btn btn-primary">Administrar Calificaciones</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Verificar autenticación
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!token || !user) {
+                // Redirigir al login si no está autenticado
+                window.location.href = '/auth/login';
+                return;
+            }
+            
+            // Mostrar nombre de usuario
+            document.getElementById('navUserName').textContent = user.nombre;
+            document.getElementById('welcomeMessage').textContent = `Bienvenido ${user.nombre} al panel de administración. Selecciona una opción del menú para gestionar los datos.`;
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+        
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', checkAuth);
+        
+        // Evento de cerrar sesión
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+    </script>
+    
+    <!-- Incluir el componente de chat flotante -->
+    <%- include('./partials/chat-flotante') %>
+</body>
+</html>

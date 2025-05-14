@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Calificaciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .star-rating {
+            color: #ffc107;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Mi Aplicación</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Panel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/movies">Películas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/genres">Géneros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard/ratings">Calificaciones</a>
+                    </li>
+                </ul>
+                <div class="user-info">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <span id="navUserName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/auth/profile">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">Cerrar Sesiu00f3n</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1>Administrar Calificaciones</h1>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRatingModal">
+                    <i class="bi bi-plus"></i> Nueva Calificaciu00f3n
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-success" id="successAlert" style="display: none;"></div>
+        <div class="alert alert-danger" id="errorAlert" style="display: none;"></div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Película</th>
+                                <th>Usuario</th>
+                                <th>Calificación</th>
+                                <th>Comentario</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ratingsTableBody">
+                            <!-- Los datos de las calificaciones se cargaru00e1n aquu00ed -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadingMessage" class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando calificaciones...</p>
+                </div>
+                <div id="noRatingsMessage" class="text-center py-3" style="display: none;">
+                    <p>No hay calificaciones disponibles. u00a1Agrega una nueva!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar calificación -->
+    <div class="modal fade" id="addRatingModal" tabindex="-1" aria-labelledby="addRatingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRatingModalLabel">Agregar Nueva Calificación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addRatingForm">
+                        <div class="mb-3">
+                            <label for="movie" class="form-label">Película</label>
+                            <select class="form-select" id="movie" required>
+                                <option value="" selected disabled>Seleccionar película</option>
+                                <!-- Las películas se cargan aquí -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Calificación</label>
+                            <select class="form-select" id="rating" required>
+                                <option value="" selected disabled>Seleccionar calificación</option>
+                                <option value="1">1 - Muy mala</option>
+                                <option value="2">2 - Mala</option>
+                                <option value="3">3 - Regular</option>
+                                <option value="4">4 - Buena</option>
+                                <option value="5">5 - Excelente</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comentario</label>
+                            <textarea class="form-control" id="comment" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveRatingBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar calificación -->
+    <div class="modal fade" id="editRatingModal" tabindex="-1" aria-labelledby="editRatingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRatingModalLabel">Editar Calificación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRatingForm">
+                        <input type="hidden" id="editRatingId">
+                        <div class="mb-3">
+                            <label for="editMovie" class="form-label">Película</label>
+                            <input type="text" class="form-control" id="editMovie" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRating" class="form-label">Calificación</label>
+                            <select class="form-select" id="editRating" required>
+                                <option value="1">1 - Muy mala</option>
+                                <option value="2">2 - Mala</option>
+                                <option value="3">3 - Regular</option>
+                                <option value="4">4 - Buena</option>
+                                <option value="5">5 - Excelente</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editComment" class="form-label">Comentario</label>
+                            <textarea class="form-control" id="editComment" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateRatingBtn">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let ratings = [];
+        let movies = [];
+        let users = [];
+        
+        // Verificar autenticación
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!token || !user) {
+                // Redirigir al login si no está autenticado
+                window.location.href = '/auth/login';
+                return null;
+            }
+            
+            // Mostrar nombre de usuario
+            document.getElementById('navUserName').textContent = user.nombre;
+            return token;
+        }
+        
+        // Cargar calificaciones
+        async function loadRatings() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/ratings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    ratings = await response.json();
+                    displayRatings(ratings);
+                } else {
+                    showError('Error al cargar las calificaciones');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexiu00f3n');
+            } finally {
+                document.getElementById('loadingMessage').style.display = 'none';
+            }
+        }
+        
+        // Cargar películas
+        async function loadMovies() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/movies', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    movies = await response.json();
+                    populateMovieDropdown(movies);
+                } else {
+                    showError('Error al cargar las películas');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Cargar usuarios
+        async function loadUsers() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    users = await response.json();
+                } else {
+                    showError('Error al cargar los usuarios');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexiu00f3n');
+            }
+        }
+        
+        // Mostrar calificaciones en la tabla
+        function displayRatings(ratings) {
+            const tableBody = document.getElementById('ratingsTableBody');
+            tableBody.innerHTML = '';
+            
+            if (ratings.length === 0) {
+                document.getElementById('noRatingsMessage').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('noRatingsMessage').style.display = 'none';
+            
+            ratings.forEach(rating => {
+                const movie = movies.find(m => m._id === rating.pelicula);
+                const user = users.find(u => u._id === rating.usuario);
+                
+                const movieTitle = movie ? movie.titulo : 'Película desconocida';
+                const userName = user ? `${user.nombre} ${user.apellido}` : 'Usuario desconocido';
+                
+                const stars = '★'.repeat(rating.calificacion) + '☆'.repeat(5 - rating.calificacion);
+                const date = new Date(rating.fecha).toLocaleDateString();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${movieTitle}</td>
+                    <td>${userName}</td>
+                    <td><span class="star-rating">${stars}</span> (${rating.calificacion})</td>
+                    <td>${rating.comentario || 'Sin comentario'}</td>
+                    <td>${date}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-btn" data-id="${rating._id}">
+                            Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${rating._id}">
+                            Eliminar
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Agregar event listeners a los botones
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editRating(btn.getAttribute('data-id')));
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteRating(btn.getAttribute('data-id')));
+            });
+        }
+        
+        // Poblar el dropdown de películas
+        function populateMovieDropdown(movies) {
+            const movieSelect = document.getElementById('movie');
+            
+            // Limpiar opciones existentes excepto la primera
+            while (movieSelect.options.length > 1) {
+                movieSelect.remove(1);
+            }
+            
+            // Agregar opciones de películas
+            movies.forEach(movie => {
+                const option = document.createElement('option');
+                option.value = movie._id;
+                option.textContent = movie.titulo;
+                movieSelect.appendChild(option);
+            });
+        }
+        
+        // Agregar calificación
+        async function addRating() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const user = JSON.parse(localStorage.getItem('user'));
+            const movieId = document.getElementById('movie').value;
+            const ratingValue = document.getElementById('rating').value;
+            const comment = document.getElementById('comment').value;
+            
+            try {
+                const response = await fetch('/ratings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        pelicula: movieId,
+                        usuario: user.id,
+                        calificacion: parseInt(ratingValue),
+                        comentario: comment
+                    })
+                });
+                
+                if (response.ok) {
+                    const newRating = await response.json();
+                    ratings.push(newRating);
+                    displayRatings(ratings);
+                    
+                    // Cerrar modal y limpiar formulario
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addRatingModal'));
+                    modal.hide();
+                    document.getElementById('addRatingForm').reset();
+                    
+                    showSuccess('Calificación agregada correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al agregar la calificación');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexiu00f3n');
+            }
+        }
+        
+        // Editar calificación
+        function editRating(id) {
+            const rating = ratings.find(r => r._id === id);
+            if (!rating) return;
+            
+            const movie = movies.find(m => m._id === rating.pelicula);
+            const movieTitle = movie ? movie.titulo : 'Película desconocida';
+            
+            document.getElementById('editRatingId').value = rating._id;
+            document.getElementById('editMovie').value = movieTitle;
+            document.getElementById('editRating').value = rating.calificacion;
+            document.getElementById('editComment').value = rating.comentario || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editRatingModal'));
+            modal.show();
+        }
+        
+        // Actualizar calificación
+        async function updateRating() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const id = document.getElementById('editRatingId').value;
+            const ratingValue = document.getElementById('editRating').value;
+            const comment = document.getElementById('editComment').value;
+            
+            try {
+                const response = await fetch(`/ratings/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        calificacion: parseInt(ratingValue),
+                        comentario: comment
+                    })
+                });
+                
+                if (response.ok) {
+                    const updatedRating = await response.json();
+                    
+                    // Actualizar la calificación en el array
+                    const index = ratings.findIndex(r => r._id === id);
+                    if (index !== -1) {
+                        ratings[index] = updatedRating;
+                    }
+                    
+                    displayRatings(ratings);
+                    
+                    // Cerrar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editRatingModal'));
+                    modal.hide();
+                    
+                    showSuccess('Calificación actualizada correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al actualizar la calificación');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Eliminar calificación
+        async function deleteRating(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta calificación?')) {
+                return;
+            }
+            
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`/ratings/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    // Eliminar la calificación del array
+                    ratings = ratings.filter(r => r._id !== id);
+                    displayRatings(ratings);
+                    
+                    showSuccess('Calificación eliminada correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al eliminar la calificación');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Mostrar mensaje de éxito
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Mostrar mensaje de error
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación
+            const token = checkAuth();
+            if (!token) return;
+            
+            // Cargar datos
+            loadMovies();
+            loadUsers();
+            loadRatings();
+            
+            // Evento de guardar calificación
+            document.getElementById('saveRatingBtn').addEventListener('click', addRating);
+            
+            // Evento de actualizar calificación
+            document.getElementById('updateRatingBtn').addEventListener('click', updateRating);
+            
+            // Evento de cerrar sesión
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        });
+    </script>
+</body>
+</html>

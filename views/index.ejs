@@ -3,24 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Primera pagina</title>
+    <title>Mi Aplicación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            padding-top: 20px;
+        }
+        .navbar {
+            margin-bottom: 20px;
+        }
+        .auth-buttons {
+            display: none;
+        }
+        .user-info {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-
-    <h1 class="title">Mi primer CHAT</h1>
-    <div id="chat">
-        <input type="text" id="username" placeholder="Ingrese su nombre de usuario">
-        <div id="messages">
-            <div class="message">Jonas:hola</div>
-            <div class="message">Jonas:hola</div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Mi Aplicación</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Inicio</a>
+                    </li>
+                </ul>
+                <div class="auth-buttons">
+                    <a href="/auth/login" class="btn btn-outline-light me-2">Iniciar Sesión</a>
+                    <a href="/auth/register" class="btn btn-light">Registrarse</a>
+                </div>
+                <div class="user-info">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <span id="navUserName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/auth/profile">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-    <div id="writing">
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="mb-0">Mi Chat</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="chat">
+                            <input type="text" class="form-control mb-3" id="username" placeholder="Ingrese su nombre de usuario">
+                            <div id="messages" class="border p-3 mb-3" style="height: 300px; overflow-y: auto;">
+                                <div class="message">Jonas: hola</div>
+                                <div class="message">Jonas: hola</div>
+                            </div>
+                            <div id="writing" class="text-muted small mb-2">
+                            </div>
+                            <textarea id="writemessage" class="form-control" placeholder="Ingrese su mensaje"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <textarea id="writemessage" placeholder="Ingrese su mensaje"></textarea>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Manejo de autenticación
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            const authButtons = document.querySelector('.auth-buttons');
+            const userInfo = document.querySelector('.user-info');
+            
+            if (token && user) {
+                // Usuario autenticado
+                document.getElementById('navUserName').textContent = user.nombre;
+                userInfo.style.display = 'block';
+                authButtons.style.display = 'none';
+                
+                // Redirigir al dashboard si el usuario está en la página principal
+                if (window.location.pathname === '/') {
+                    window.location.href = '/dashboard';
+                    return;
+                }
+                
+                // Si hay nombre de usuario guardado, usarlo automáticamente
+                if (document.getElementById('username')) {
+                    document.getElementById('username').value = user.nombre;
+                }
+            } else {
+                // Usuario no autenticado
+                userInfo.style.display = 'none';
+                authButtons.style.display = 'block';
+            }
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+        
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', checkAuth);
+        
+        // Evento de cerrar sesión
+        if (document.getElementById('logoutBtn')) {
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }
+        
+        // Funcionalidad del chat
         const socket = io()
         const username = document.getElementById('username')
         const writeMessage = document.getElementById('writemessage')
@@ -32,7 +137,7 @@
             for(const message of m){
                 content += `
                 <div class="message">
-                ${message.username}:${message.message}
+                ${message.username}: ${message.message}
                 </div>
                 <br>`
             }

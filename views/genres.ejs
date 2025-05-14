@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Géneros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Mi Aplicación</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Panel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/movies">Películas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard/genres">Géneros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/ratings">Calificaciones</a>
+                    </li>
+                </ul>
+                <div class="user-info">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <span id="navUserName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/auth/profile">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn">Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1>Administrar Géneros</h1>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGenreModal">
+                    <i class="bi bi-plus"></i> Nuevo Género
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-success" id="successAlert" style="display: none;"></div>
+        <div class="alert alert-danger" id="errorAlert" style="display: none;"></div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="genresTableBody">
+                                    <!-- Los datos de los géneros se cargarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="loadingMessage" class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando géneros...</p>
+                        </div>
+                        <div id="noGenresMessage" class="text-center py-3" style="display: none;">
+                            <p>No hay géneros disponibles. ¡Agrega uno nuevo!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Información</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Los géneros te permiten categorizar las películas para una mejor organización y búsqueda.</p>
+                        <p>Puedes crear, editar y eliminar géneros según tus necesidades.</p>
+                        <p>Cada película debe estar asociada a un género.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar género -->
+    <div class="modal fade" id="addGenreModal" tabindex="-1" aria-labelledby="addGenreModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addGenreModalLabel">Agregar Nuevo Género</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addGenreForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveGenreBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar género -->
+    <div class="modal fade" id="editGenreModal" tabindex="-1" aria-labelledby="editGenreModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editGenreModalLabel">Editar Género</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editGenreForm">
+                        <input type="hidden" id="editGenreId">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="editName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateGenreBtn">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let genres = [];
+        
+        // Verificar autenticación
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!token || !user) {
+                // Redirigir al login si no está autenticado
+                window.location.href = '/auth/login';
+                return null;
+            }
+            
+            // Mostrar nombre de usuario
+            document.getElementById('navUserName').textContent = user.nombre;
+            return token;
+        }
+        
+        // Cargar géneros
+        async function loadGenres() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/genres', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    genres = await response.json();
+                    displayGenres(genres);
+                } else {
+                    showError('Error al cargar los géneros');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            } finally {
+                document.getElementById('loadingMessage').style.display = 'none';
+            }
+        }
+        
+        // Mostrar géneros en la tabla
+        function displayGenres(genres) {
+            const tableBody = document.getElementById('genresTableBody');
+            tableBody.innerHTML = '';
+            
+            if (genres.length === 0) {
+                document.getElementById('noGenresMessage').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('noGenresMessage').style.display = 'none';
+            
+            genres.forEach(genre => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${genre.nombre}</td>
+                    <td>${genre.descripcion || 'Sin descripción'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-btn" data-id="${genre._id}">
+                            Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${genre._id}">
+                            Eliminar
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Agregar event listeners a los botones
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editGenre(btn.getAttribute('data-id')));
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteGenre(btn.getAttribute('data-id')));
+            });
+        }
+        
+        // Agregar género
+        async function addGenre() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            
+            try {
+                const response = await fetch('/genres', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        nombre: name,
+                        descripcion: description
+                    })
+                });
+                
+                if (response.ok) {
+                    const newGenre = await response.json();
+                    genres.push(newGenre);
+                    displayGenres(genres);
+                    
+                    // Cerrar modal y limpiar formulario
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addGenreModal'));
+                    modal.hide();
+                    document.getElementById('addGenreForm').reset();
+                    
+                    showSuccess('Género agregado correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al agregar el género');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Editar género
+        function editGenre(id) {
+            const genre = genres.find(g => g._id === id);
+            if (!genre) return;
+            
+            document.getElementById('editGenreId').value = genre._id;
+            document.getElementById('editName').value = genre.nombre;
+            document.getElementById('editDescription').value = genre.descripcion || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editGenreModal'));
+            modal.show();
+        }
+        
+        // Actualizar género
+        async function updateGenre() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            const id = document.getElementById('editGenreId').value;
+            const name = document.getElementById('editName').value;
+            const description = document.getElementById('editDescription').value;
+            
+            try {
+                const response = await fetch(`/genres/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        nombre: name,
+                        descripcion: description
+                    })
+                });
+                
+                if (response.ok) {
+                    const updatedGenre = await response.json();
+                    
+                    // Actualizar el género en el array
+                    const index = genres.findIndex(g => g._id === id);
+                    if (index !== -1) {
+                        genres[index] = updatedGenre;
+                    }
+                    
+                    displayGenres(genres);
+                    
+                    // Cerrar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editGenreModal'));
+                    modal.hide();
+                    
+                    showSuccess('Género actualizado correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al actualizar el género');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Eliminar género
+        async function deleteGenre(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este género?')) {
+                return;
+            }
+            
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`/genres/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    // Eliminar el género del array
+                    genres = genres.filter(g => g._id !== id);
+                    displayGenres(genres);
+                    
+                    showSuccess('Género eliminado correctamente');
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Error al eliminar el género');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Mostrar mensaje de éxito
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Mostrar mensaje de error
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación
+            const token = checkAuth();
+            if (!token) return;
+            
+            // Cargar datos
+            loadGenres();
+            
+            // Evento de guardar género
+            document.getElementById('saveGenreBtn').addEventListener('click', addGenre);
+            
+            // Evento de actualizar género
+            document.getElementById('updateGenreBtn').addEventListener('click', updateGenre);
+            
+            // Evento de cerrar sesión
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        });
+    </script>
+</body>
+</html>

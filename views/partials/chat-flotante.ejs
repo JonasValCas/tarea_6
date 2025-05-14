@@ -1,0 +1,112 @@
+<!-- Chat Flotante -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="/chat-flotante.css">
+
+<!-- Botón flotante para abrir el chat -->
+<div class="chat-flotante-btn" id="chatFlotanteBtn">
+    <i class="bi bi-chat-dots-fill"></i>
+</div>
+
+<!-- Contenedor del chat flotante -->
+<div class="chat-flotante-container" id="chatFlotanteContainer">
+    <div class="chat-flotante-header">
+        <h5>Chat</h5>
+        <button class="chat-flotante-close" id="chatFlotanteClose">&times;</button>
+    </div>
+    <div class="chat-flotante-body">
+        <div class="chat-flotante-messages" id="chatFlotanteMessages">
+            <!-- Los mensajes se cargarán aquí dinámicamente -->
+        </div>
+        <div class="chat-flotante-writing" id="chatFlotanteWriting"></div>
+    </div>
+    <div class="chat-flotante-input">
+        <input type="text" id="chatFlotanteInput" placeholder="Escribe un mensaje...">
+        <button id="chatFlotanteEnviar">Enviar</button>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos del DOM
+        const chatBtn = document.getElementById('chatFlotanteBtn');
+        const chatContainer = document.getElementById('chatFlotanteContainer');
+        const chatClose = document.getElementById('chatFlotanteClose');
+        const chatMessages = document.getElementById('chatFlotanteMessages');
+        const chatWriting = document.getElementById('chatFlotanteWriting');
+        const chatInput = document.getElementById('chatFlotanteInput');
+        const chatEnviar = document.getElementById('chatFlotanteEnviar');
+        
+        // Obtener usuario actual
+        const user = JSON.parse(localStorage.getItem('user'));
+        const username = user ? user.nombre : 'Anónimo';
+        
+        // Conectar a Socket.io
+        const socket = io();
+        
+        // Mostrar/ocultar el chat
+        chatBtn.addEventListener('click', function() {
+            chatContainer.classList.add('chat-flotante-show', 'chat-flotante-fade-in');
+            chatContainer.classList.remove('chat-flotante-fade-out');
+            // Cargar mensajes al abrir el chat
+            socket.emit('get-messages');
+        });
+        
+        chatClose.addEventListener('click', function() {
+            chatContainer.classList.add('chat-flotante-fade-out');
+            setTimeout(() => {
+                chatContainer.classList.remove('chat-flotante-show', 'chat-flotante-fade-in');
+            }, 300);
+        });
+        
+        // Recibir todos los mensajes
+        socket.on('all-messages', (messages) => {
+            let content = '';
+            for (const message of messages) {
+                const isMe = message.username === username;
+                content += `
+                <div class="chat-flotante-message ${isMe ? 'chat-flotante-message-me' : 'chat-flotante-message-user'}">
+                    <strong>${isMe ? 'Yo' : message.username}:</strong> ${message.message}
+                </div>`;
+            }
+            chatMessages.innerHTML = content;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        // Detectar escritura
+        chatInput.addEventListener('keydown', () => {
+            socket.emit('writing', username);
+        });
+        
+        // Mostrar quién está escribiendo
+        socket.on('writing', (user) => {
+            if (user !== username) {
+                chatWriting.textContent = `${user} está escribiendo...`;
+                setTimeout(() => {
+                    chatWriting.textContent = '';
+                }, 3000);
+            }
+        });
+        
+        // Enviar mensaje con Enter o botón
+        chatInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter' && chatInput.value.trim() !== '') {
+                enviarMensaje();
+            }
+        });
+        
+        chatEnviar.addEventListener('click', () => {
+            if (chatInput.value.trim() !== '') {
+                enviarMensaje();
+            }
+        });
+        
+        function enviarMensaje() {
+            socket.emit('new-message', {
+                username: username,
+                message: chatInput.value.trim()
+            });
+            chatInput.value = '';
+        }
+    });
+</script>
