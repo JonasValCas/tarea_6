@@ -10,7 +10,7 @@
 <!-- Contenedor del chat flotante -->
 <div class="chat-flotante-container" id="chatFlotanteContainer">
     <div class="chat-flotante-header">
-        <h5>Chat</h5>
+        <h5>Chat con Asistente IA</h5>
         <button class="chat-flotante-close" id="chatFlotanteClose">&times;</button>
     </div>
     <div class="chat-flotante-body">
@@ -62,13 +62,35 @@
         // Recibir todos los mensajes
         socket.on('all-messages', (messages) => {
             let content = '';
+            
+            // Agregar mensaje de bienvenida del asistente si es la primera vez que se abre el chat
+            if (!localStorage.getItem('chatWelcomeShown')) {
+                content += `
+                <div class="chat-flotante-message chat-flotante-message-bot">
+                    <strong>AsistenteIA:</strong> ¡Hola! Soy el asistente virtual del sistema. Puedo responder preguntas sobre películas, géneros, calificaciones, usuarios y más. ¿En qué puedo ayudarte?
+                </div>`;
+                localStorage.setItem('chatWelcomeShown', 'true');
+            }
+            
             for (const message of messages) {
                 const isMe = message.username === username;
+                const isBot = message.username === 'AsistenteIA';
+                
+                let messageClass = '';
+                if (isMe) {
+                    messageClass = 'chat-flotante-message-me';
+                } else if (isBot) {
+                    messageClass = 'chat-flotante-message-bot';
+                } else {
+                    messageClass = 'chat-flotante-message-user';
+                }
+                
                 content += `
-                <div class="chat-flotante-message ${isMe ? 'chat-flotante-message-me' : 'chat-flotante-message-user'}">
+                <div class="chat-flotante-message ${messageClass}">
                     <strong>${isMe ? 'Yo' : message.username}:</strong> ${message.message}
                 </div>`;
             }
+            
             chatMessages.innerHTML = content;
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });

@@ -90,6 +90,23 @@
     align-self: flex-start;
 }
 
+/* Estilo especial para los mensajes del asistente virtual */
+.chat-flotante-message-bot {
+    background-color: #17a2b8;
+    color: white;
+    align-self: flex-start;
+    border-left: 4px solid #0f7888;
+    position: relative;
+}
+
+.chat-flotante-message-bot::before {
+    content: '🤖';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .chat-flotante-message-me {
     background-color: #007bff;
     color: white;
